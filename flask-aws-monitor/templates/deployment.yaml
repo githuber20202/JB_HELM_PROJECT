@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-aws-monitor
+  labels:
+    app: flask-aws-monitor
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: flask-aws-monitor
+  template:
+    metadata:
+      labels:
+        app: flask-aws-monitor
+    spec:
+      containers:
+        - name: flask-aws-monitor
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.aws.env.AWS_ACCESS_KEY_ID | quote }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.aws.env.AWS_SECRET_ACCESS_KEY | quote }}
+            - name: AWS_DEFAULT_REGION
+              value: {{ .Values.aws.env.AWS_DEFAULT_REGION | quote }}

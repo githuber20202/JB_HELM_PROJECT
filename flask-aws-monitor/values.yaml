@@ -1,0 +1,21 @@
+# תצורת תמונה (יש לעדכן ל-repo שלך)
+image:
+  repository: formy5000/resources_viewer
+  tag: "latest"
+
+# רפליקות ופורט אפליקציה
+replicaCount: 2
+containerPort: 5001
+
+# שירות (לבונוס אין צורך; כאן רק הגדרה בסיסית)
+service:
+  type: LoadBalancer
+  port: 5001
+  targetPort: 5001
+
+# משתני סביבה ל-AWS (לצורך התרגיל; אל תשים מפתחות אמיתיים ב-git)
+aws:
+  env:
+    AWS_ACCESS_KEY_ID: ""
+    AWS_SECRET_ACCESS_KEY: ""
+    AWS_DEFAULT_REGION: "us-east-1"
