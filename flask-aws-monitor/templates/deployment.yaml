@@ -1,28 +1,75 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask-aws-monitor
+  name: {{ include "flask-aws-monitor.fullname" . }}
   labels:
-    app: flask-aws-monitor
+    {{- include "flask-aws-monitor.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: flask-aws-monitor
+      {{- include "flask-aws-monitor.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: flask-aws-monitor
+        {{- include "flask-aws-monitor.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
     spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
       containers:
-        - name: flask-aws-monitor
+        - name: {{ include "flask-aws-monitor.name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.containerPort }}
+            - name: http
+              containerPort: {{ .Values.containerPort }}
           env:
+            {{- if .Values.aws.useExistingSecret }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.existingSecretName }}
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.existingSecretName }}
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.aws.existingSecretName }}
+                  key: AWS_DEFAULT_REGION
+            {{- else }}
             - name: AWS_ACCESS_KEY_ID
               value: {{ .Values.aws.env.AWS_ACCESS_KEY_ID | quote }}
             - name: AWS_SECRET_ACCESS_KEY
               value: {{ .Values.aws.env.AWS_SECRET_ACCESS_KEY | quote }}
             - name: AWS_DEFAULT_REGION
               value: {{ .Values.aws.env.AWS_DEFAULT_REGION | quote }}
+            {{- end }}
+          # Health checks (adjust path to your app’s routes if needed)
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.containerPort }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}

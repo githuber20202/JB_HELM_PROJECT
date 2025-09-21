@@ -1,6 +1,6 @@
 apiVersion: v2
 name: flask-aws-monitor
-description: Minimal Helm chart לפריסת אפליקציית Flask לניטור AWS
+description: Helm chart for a Flask-based AWS monitoring application
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

@@ -1,0 +1,8 @@
+1. Verify pods and service:
+   kubectl get deploy,po,svc -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2. Access:
+   - If ingress.enabled=true: browse the configured host(s).
+   - If ingress.enabled=false: fetch external IP:
+       kubectl get svc {{ include "flask-aws-monitor.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+     Then open: http://EXTERNAL_IP:{{ .Values.service.port }}/

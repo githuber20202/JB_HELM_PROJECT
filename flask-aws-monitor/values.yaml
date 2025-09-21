@@ -1,21 +1,58 @@
-# תצורת תמונה (יש לעדכן ל-repo שלך)
+# --- Container image ---
 image:
   repository: formy5000/resources_viewer
   tag: "latest"
+  pullPolicy: Always
 
-# רפליקות ופורט אפליקציה
-replicaCount: 1
+# --- App config ---
+replicaCount: 2
 containerPort: 5001
 
-# שירות (לבונוס אין צורך; כאן רק הגדרה בסיסית)
-service:
-  type: LoadBalancer
-  port: 5001
-  targetPort: 5001
-
-# משתני סביבה ל-AWS (לצורך התרגיל; אל תשים מפתחות אמיתיים ב-git)
+# Use either plain env vars or reference an existing Secret (recommended for prod)
 aws:
+  useExistingSecret: false         # true -> pull from existingSecretName below
+  existingSecretName: ""           # e.g., aws-credentials
+  # Only used when useExistingSecret=false (dev/demo). Do NOT commit real keys.
   env:
     AWS_ACCESS_KEY_ID: ""
     AWS_SECRET_ACCESS_KEY: ""
     AWS_DEFAULT_REGION: "us-east-1"
+
+# --- Resources ---
+# Default resource requests/limits. Tune per your cluster capacity.
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Service config
+service:
+  # Bonus requirement: when ingress.enabled=true => ClusterIP; else LoadBalancer.
+  # The template enforces this automatically; this value is ignored.
+  port: 5001
+  targetPort: 5001
+
+# Ingress (optional)
+ingress:
+  enabled: false
+  className: ""            # e.g., "nginx"
+  hosts:
+    - host: monitor.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []                  # e.g., [{ hosts: ["monitor.example.com"], secretName: "monitor-tls" }]
+
+# Pod labels/annotations (optional)
+podAnnotations: {}
+
+# ImagePullSecrets (optional)
+imagePullSecrets: []       # e.g., [{ name: regcred }]
+
+# Node scheduling (optional)
+nodeSelector: {}
+tolerations: []
+affinity: {}
